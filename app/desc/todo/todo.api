@@ -1,0 +1,62 @@
+syntax = "v1"
+
+info(
+    title: "todo模块"
+    desc: "todo模块"
+    author: "muskonu"
+    email: "3239089828@qq.com"
+    version: "v0.1.0"
+)
+
+type Todo struct {
+        Id          int64       `json:"id"`
+        IsCompleted bool        `json:"isCompleted"`
+        Content     string        `json:"content"`
+        Deadline     int64         `json:"deadline"`
+        Repeat  string         `json:"repeat"`
+    }
+
+type (
+    AddTodoRequest struct{
+        Content     string        `json:"content"`
+        DueDate     int64         `json:"dueDate"`
+        Recurrence  int64         `json:"recurrence,range=[0:4]"`
+    }
+    UpdateTodoRequest struct{
+        Id          int64         `json:"id"`
+        Content     string        `json:"content"`
+        DueDate     int64         `json:"dueDate"`
+        Recurrence  int64         `json:"recurrence,range=[0:4]"`
+    }
+    CompleteTodoRequest struct{
+        Id          int64         `json:"id"`
+    }
+    DelTodoRequest struct{
+        Id          int64         `json:"id"`
+    }
+    QueryTodoRequest struct{
+        Cursor int64 `form:"cursor"`
+        pageSize int64 `form:"pageSize"`
+        IsCompleted bool `form:"isCompleted"`
+    }
+    QueryTodoResponse struct{
+        Todos []Todo `json:"todos"`
+    }
+)
+
+@server(
+    group: todo
+    jwt: JwtAuth
+)
+service api {
+    @handler addTodo
+    post /todo  (AddTodoRequest)
+    @handler updateTodo
+    put /todo   (UpdateTodoRequest)
+    @handler completeTodo
+    patch /todo (CompleteTodoRequest)
+    @handler delTodo
+    delete /todo (DelTodoRequest)
+    @handler queryTodo
+    get /todo   (QueryTodoRequest) returns (QueryTodoResponse)
+}

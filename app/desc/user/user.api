@@ -1,0 +1,77 @@
+syntax = "v1"
+
+info(
+    title: "用户模块"
+    desc: "用户模块"
+    author: "muskonu"
+    email: "3239089828@qq.com"
+    version: "v0.1.0"
+)
+
+@server(
+    group: user
+)
+service api {
+    @handler register
+    post /register (registerRequest) returns (LoginResponse)
+    @handler loginPass
+    post /login/pass (EmailPwdLoginRequest) returns (LoginResponse)
+    @handler loginEmail
+    post /login/captcha (EmailCaptchaLoginRequest) returns (LoginResponse)
+    @handler sendCaptcha
+    post /captcha (CaptchaRequest)
+}
+
+type (
+    CaptchaRequest {
+        Email    string `json:"email" validate:"email"`
+    }
+    EmailPwdLoginRequest {
+        Email    string `json:"email" validate:"email"`
+        Password string `json:"password" validate:"alphanum,min=8,max=16"`
+    }
+    EmailCaptchaLoginRequest{
+        Email   string `json:"email" validate:"email"`
+        Captcha string `json:"captcha" validate:"number,len=6"`
+    }
+    registerRequest {
+        Email   string `json:"email" validate:"email"`
+        Captcha string `json:"captcha" validate:"number,len=6"`
+        Name string `json:"name" validate:"required,excludesall=;#<>"`
+        Password string `json:"password" validate:"alphanum,min=8,max=16"`
+    }
+
+    LoginResponse {
+        AccessToken string `json:"accessToken"`
+        AccessExpire int64 `json:"accessExpire"`
+        RefreshAfter int64 `json:"refreshAfter"`
+        Name string `json:"name"`
+    }
+)
+
+type (
+    ChangePwdRequest {
+        Email    string `json:"email" validate:"email,endswith=@hdu.edu.cn"`
+        Password string `json:"password" validate:"alphanum,min=8,max=16"`
+    }
+)
+
+type (
+    UserNameRequest{
+        Name string `json:"name" validate:"required,excludesall=;#<>"`
+    }
+    UserNameResponse{
+        Name string `json:"name"`
+    }
+)
+
+@server(
+    group: user
+    jwt: JwtAuth
+)
+service api {
+    @handler changePwd
+    put /password (ChangePwdRequest)
+    @handler changeUserName
+    put /users/username (UserNameRequest) returns (UserNameResponse)
+}

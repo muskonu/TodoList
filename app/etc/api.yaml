@@ -1,0 +1,27 @@
+Name: api
+Host: 0.0.0.0
+Port: 8888
+
+JwtAuth:
+  AccessSecret: ae0536f9-6450-4606-8e13-5a19ed505da0
+  AccessExpire: 31536000
+
+Mysql:
+  Path: 127.0.0.1
+  Port: 3306
+  Dbname: TodoList
+  Username: root
+  Password:
+  MaxIdleConns: 10
+  MaxOpenConns: 10
+  LogMode: dev
+  LogZap: false
+  Config: charset=utf8mb4&parseTime=True&loc=Local
+CacheRedis:
+  - Host: localhost:6379
+
+CSRFKey: 251e79cd5d1a994c51fd316f7040f13d
+
+Redis:
+  Host: 127.0.0.1:6379
+  Password:

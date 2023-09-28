@@ -1,0 +1,12 @@
+syntax = "v1"
+
+import "user/user.api"
+import "todo/todo.api"
+
+info(
+	title: "todolist"
+	desc: "提醒助手"
+	author: "muskonu"
+	email: "3239089828@qq.com"
+	version: "v0.1.0"
+)
