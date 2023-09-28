@@ -37,7 +37,7 @@ func SendWarning(receiver string, todo *model.TodoList) error {
 	em.HTML = b.Bytes()
 
 	//设置服务器相关的配置
-	err = em.Send("smtp.qq.com:25", smtp.PlainAuth("", "1706459198@qq.com", "ywpbbkfisdbxdibi", "smtp.qq.com"))
+	err = em.Send("smtp.qq.com:25", smtp.PlainAuth("", "1706459198@qq.com", "", "smtp.qq.com"))
 	if err != nil {
 		logx.Error()
 		return err

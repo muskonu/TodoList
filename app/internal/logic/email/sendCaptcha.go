@@ -40,7 +40,7 @@ func NewSendCaptcha(redis *redis.Client) func(receiver string) error {
 		em.HTML = []byte("您的验证码为：<h1>" + n + "</h1>")
 
 		//设置服务器相关的配置
-		err = em.Send("smtp.qq.com:25", smtp.PlainAuth("", "1706459198@qq.com", "ywpbbkfisdbxdibi", "smtp.qq.com"))
+		err = em.Send("smtp.qq.com:25", smtp.PlainAuth("", "1706459198@qq.com", "", "smtp.qq.com"))
 		if err != nil {
 			logx.Error()
 			return err
