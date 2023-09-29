@@ -21,7 +21,7 @@
 ## Features
 
 - 提供`once`, `daily`,`weekly`,`monthly`,`annually`等级别的重复提醒。
-- 在到截止时间一个小时前发送邮件进行提醒。
+- 在到截止时间十五分钟前发送邮件进行提醒。
 - 以redis作低粒度缓存和建立索引为基础，mysql所有查询语句至少达到了`range`级别。
 
 
