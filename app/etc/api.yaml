@@ -8,20 +8,21 @@ JwtAuth:
 
 Mysql:
   Path: 127.0.0.1
-  Port: 3306
+  Port: 33106
   Dbname: TodoList
   Username: root
-  Password:
+  Password: Abc114514
   MaxIdleConns: 10
   MaxOpenConns: 10
   LogMode: dev
   LogZap: false
   Config: charset=utf8mb4&parseTime=True&loc=Local
 CacheRedis:
-  - Host: localhost:6379
+  - Host: localhost:36379
+    Pass: "123456"
 
 CSRFKey: 251e79cd5d1a994c51fd316f7040f13d
 
 Redis:
-  Host: 127.0.0.1:6379
-  Password:
+  Host: 127.0.0.1:36379
+  Password: "123456"
