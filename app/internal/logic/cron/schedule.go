@@ -3,17 +3,18 @@ package cron
 import (
 	"TodoList/model"
 	"github.com/robfig/cron/v3"
+	"sync"
 	"time"
 )
 
 type TodoSchedule struct {
-	onceCancel   map[int64]chan struct{}
-	repeatCancel map[int64]cron.EntryID
-	cron         *cron.Cron
+	cancel *sync.Map
+	cron   *cron.Cron
 }
 
 func NewTodoSchedule() *TodoSchedule {
-	t := &TodoSchedule{onceCancel: make(map[int64]chan struct{}), repeatCancel: make(map[int64]cron.EntryID), cron: cron.New(cron.WithSeconds())}
+	var cancelMap *sync.Map
+	t := &TodoSchedule{cancel: cancelMap, cron: cron.New(cron.WithSeconds())}
 	t.cron.Start()
 	return t
 }
@@ -24,7 +25,7 @@ func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
 	}
 	j := NewTodoJob(todo, email)
 	c := make(chan struct{}, 1)
-	s.onceCancel[j.list.Id] = c
+	s.cancel.Store(j.list.Id, c)
 	switch j.list.Recurrence {
 	case 0:
 		go func() {
@@ -32,7 +33,7 @@ func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
 			select {
 			case <-timer:
 				j.Run()
-			case <-s.onceCancel[j.list.Id]:
+			case <-c:
 				return
 			}
 		}()
@@ -41,7 +42,7 @@ func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
 		if err != nil {
 			return err
 		}
-		s.repeatCancel[j.list.Id] = cmd
+		s.cancel.Store(j.list.Id, cmd)
 	}
 	return nil
 }
@@ -49,16 +50,19 @@ func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
 func (s *TodoSchedule) RemoveJob(list *model.TodoList) {
 	switch list.Recurrence {
 	case 0:
-		select {
-		case s.onceCancel[list.Id] <- struct{}{}:
-			delete(s.onceCancel, list.Id)
-			return
-		default:
+		channel, ok := s.cancel.Load(list.Id)
+		if !ok {
 			return
 		}
+		channel.(chan struct{}) <- struct{}{}
+		s.cancel.Delete(list.Id)
 	default:
-		s.cron.Remove(s.repeatCancel[list.Id])
-		delete(s.repeatCancel, list.Id)
+		cmd, ok := s.cancel.Load(list.Id)
+		if !ok {
+			return
+		}
+		s.cron.Remove(cmd.(cron.EntryID))
+		s.cancel.Delete(list.Id)
 	}
 
 }
