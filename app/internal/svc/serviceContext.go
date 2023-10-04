@@ -20,12 +20,13 @@ type ServiceContext struct {
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	db, _ := gormc.ConnectMysql(c.Mysql)
+	todoListModel := model.NewTodoListModel(db, c.CacheRedis)
 	return &ServiceContext{
 		Config:        c,
 		Validate:      validator.New(),
 		Redis:         redis.NewClient(&redis.Options{Addr: c.Redis.Host, Password: c.Redis.Password}),
 		UserModel:     model.NewUserModel(db, c.CacheRedis),
-		TodoListModel: model.NewTodoListModel(db, c.CacheRedis),
-		Schedule:      cron.NewTodoSchedule(),
+		TodoListModel: todoListModel,
+		Schedule:      cron.NewTodoSchedule(todoListModel),
 	}
 }

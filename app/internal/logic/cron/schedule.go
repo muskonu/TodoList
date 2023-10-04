@@ -8,13 +8,16 @@ import (
 )
 
 type TodoSchedule struct {
-	cancel *sync.Map
-	cron   *cron.Cron
+	emailCancel *sync.Map
+	daoCancel   *sync.Map
+	model       model.TodoListModel
+	cron        *cron.Cron
 }
 
-func NewTodoSchedule() *TodoSchedule {
-	var cancelMap *sync.Map
-	t := &TodoSchedule{cancel: cancelMap, cron: cron.New(cron.WithSeconds())}
+func NewTodoSchedule(model model.TodoListModel) *TodoSchedule {
+	var emailCancelMap *sync.Map
+	var daoCancelMap *sync.Map
+	t := &TodoSchedule{daoCancel: daoCancelMap, emailCancel: emailCancelMap, cron: cron.New(cron.WithSeconds()), model: model}
 	t.cron.Start()
 	return t
 }
@@ -23,9 +26,9 @@ func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
 	if !todo.DueDate.Add(-15 * time.Minute).After(time.Now()) {
 		return nil
 	}
-	j := NewTodoJob(todo, email)
+	j := NewTodoJob(todo, email, s.model)
 	c := make(chan struct{}, 1)
-	s.cancel.Store(j.list.Id, c)
+	s.emailCancel.Store(j.list.Id, c)
 	switch j.list.Recurrence {
 	case 0:
 		go func() {
@@ -38,11 +41,27 @@ func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
 			}
 		}()
 	default:
-		cmd, err := s.cron.AddJob(j.ParseToCrontab(), j)
-		if err != nil {
-			return err
-		}
-		s.cancel.Store(j.list.Id, cmd)
+		//事务添加email job和dao job
+		err := func() (err error) {
+			rollback := func(r func(cron.EntryID), id cron.EntryID) {
+				if err != nil {
+					r(id)
+				}
+			}
+			emailCmd, err := s.cron.AddJob(j.emailJob.ParseToCrontab(), j.emailJob)
+			if err != nil {
+				return err
+			}
+			defer rollback(s.rollback, emailCmd)
+			daoCmd, err := s.cron.AddJob(j.ParseToCrontab(), j)
+			if err != nil {
+				return err
+			}
+			s.emailCancel.Store(j.list.Id, emailCmd)
+			s.daoCancel.Store(j.list.Id, daoCmd)
+			return nil
+		}()
+		return err
 	}
 	return nil
 }
@@ -50,19 +69,25 @@ func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
 func (s *TodoSchedule) RemoveJob(list *model.TodoList) {
 	switch list.Recurrence {
 	case 0:
-		channel, ok := s.cancel.Load(list.Id)
+		channel, ok := s.emailCancel.Load(list.Id)
 		if !ok {
 			return
 		}
 		channel.(chan struct{}) <- struct{}{}
-		s.cancel.Delete(list.Id)
+		s.emailCancel.Delete(list.Id)
 	default:
-		cmd, ok := s.cancel.Load(list.Id)
+		emailCmd, ok := s.emailCancel.Load(list.Id)
 		if !ok {
 			return
 		}
-		s.cron.Remove(cmd.(cron.EntryID))
-		s.cancel.Delete(list.Id)
+		daoCmd, _ := s.emailCancel.Load(list.Id)
+		s.cron.Remove(emailCmd.(cron.EntryID))
+		s.cron.Remove(daoCmd.(cron.EntryID))
+		s.emailCancel.Delete(list.Id)
+		s.daoCancel.Delete(list.Id)
 	}
+}
 
+func (s *TodoSchedule) rollback(id cron.EntryID) {
+	s.cron.Remove(id)
 }
