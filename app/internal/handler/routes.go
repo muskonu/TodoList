@@ -46,7 +46,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodPut,
-				Path:    "/users/username",
+				Path:    "/user/name",
 				Handler: user.ChangeUserNameHandler(serverCtx),
 			},
 		},

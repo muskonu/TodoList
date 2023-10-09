@@ -27,11 +27,11 @@ CREATE TABLE `todo_list`  (
   `due_date` timestamp NOT NULL,
   `recurrence` tinyint UNSIGNED NOT NULL,
   `is_completed` tinyint UNSIGNED NOT NULL,
-  `create_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `user_id` bigint UNSIGNED NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_user_id_is_completed_due_date`(`user_id` ASC, `is_completed` ASC, `due_date` ASC) USING BTREE
+  INDEX `idx_user_id_is_completed_due_date`(`user_id` ASC, `is_completed` ASC, `due_date` DESC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

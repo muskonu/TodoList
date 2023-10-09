@@ -8,29 +8,29 @@ import (
 )
 
 type TodoSchedule struct {
-	emailCancel *sync.Map
-	daoCancel   *sync.Map
+	emailCancel sync.Map
+	daoCancel   sync.Map
 	model       model.TodoListModel
 	cron        *cron.Cron
 }
 
 func NewTodoSchedule(model model.TodoListModel) *TodoSchedule {
-	var emailCancelMap *sync.Map
-	var daoCancelMap *sync.Map
+	var emailCancelMap sync.Map
+	var daoCancelMap sync.Map
 	t := &TodoSchedule{daoCancel: daoCancelMap, emailCancel: emailCancelMap, cron: cron.New(cron.WithSeconds()), model: model}
 	t.cron.Start()
 	return t
 }
 
 func (s *TodoSchedule) AddJob(todo *model.TodoList, email string) error {
-	if !todo.DueDate.Add(-15 * time.Minute).After(time.Now()) {
-		return nil
-	}
 	j := NewTodoJob(todo, email, s.model)
 	c := make(chan struct{}, 1)
 	s.emailCancel.Store(j.list.Id, c)
 	switch j.list.Recurrence {
 	case 0:
+		if !todo.DueDate.Add(-15 * time.Minute).After(time.Now()) {
+			return nil
+		}
 		go func() {
 			timer := time.After(j.list.DueDate.Add(-15 * time.Minute).Sub(time.Now()))
 			select {

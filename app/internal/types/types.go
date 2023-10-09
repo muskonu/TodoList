@@ -32,7 +32,7 @@ type LoginResponse struct {
 }
 
 type ChangePwdRequest struct {
-	Email    string `json:"email" validate:"email,endswith=@hdu.edu.cn"`
+	Email    string `json:"email" validate:"email"`
 	Password string `json:"password" validate:"alphanum,min=8,max=16"`
 }
 

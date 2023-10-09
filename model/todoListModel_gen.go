@@ -105,7 +105,7 @@ func (m *defaultTodoListModel) Update(ctx context.Context, tx *gorm.DB, data *To
 		if tx != nil {
 			db = tx
 		}
-		return db.Save(data).Error
+		return db.Select("id", "user_id", "content", "due_date", "is_completed", "recurrence").Save(data).Error
 	}, m.getCacheKeys(data)...)
 	return err
 }

@@ -40,7 +40,7 @@ func (l *UpdateTodoLogic) UpdateTodo(req *types.UpdateTodoRequest) error {
 		old.Content = req.Content
 		old.DueDate = time.Unix(req.DueDate, 0)
 		old.Recurrence = req.Recurrence
-		err = l.svcCtx.TodoListModel.Update(l.ctx, nil, old)
+		err = l.svcCtx.TodoListModel.Update(l.ctx, db, old)
 		if err != nil {
 			return errors.Wrapf(errorz.NewErrCode(errorz.DB_ERROR), "todo: %v, err: %+v", req.Id, err)
 		}
